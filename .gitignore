@@ -1,0 +1,16 @@
+# .NET
+bin/
+obj/
+.vs/
+*.user
+*.lock.json
+.DS_Store
+
+# Angular
+node_modules/
+dist/
+.angular/
+.vscode/
+
+# Environment
+.env

@@ -1,0 +1,99 @@
+<div class="p-6 max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-seb-dark">Asset Dashboard</h1>
+        <div class="flex items-center gap-4">
+            <a routerLink="/assets" class="text-seb-green font-bold hover:underline">Assets</a>
+            <a routerLink="/audit" class="text-gray-600 hover:text-seb-dark hover:underline">Audit Logs</a>
+            <span class="text-sm text-gray-500 border-l pl-4 ml-4">Logged in as: <b>{{ (auth.user$ | async)
+                    }}</b></span>
+            <button (click)="auth.logout()" class="text-sm text-red-500 hover:underline">Logout</button>
+        </div>
+    </div>
+
+    <!-- Admin: Create Asset -->
+    <div *ngIf="auth.getRole() === 'Admin'" class="bg-white p-4 rounded shadow mb-8 border-l-4 border-seb-green">
+        <h2 class="font-semibold mb-4">Register New Asset</h2>
+        <div class="flex gap-4">
+            <input [(ngModel)]="newAsset.name" placeholder="Asset Name (e.g. MacBook Pro)"
+                class="border p-2 rounded flex-1">
+            <input [(ngModel)]="newAsset.serialNumber" placeholder="Serial Number" class="border p-2 rounded flex-1">
+            <button (click)="createAsset()" class="bg-seb-dark text-white px-6 py-2 rounded hover:bg-gray-800">Add
+                Asset</button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-4 mb-4 border-b">
+        <button (click)="showHistory = false" [class.border-seb-green]="!showHistory"
+            class="pb-2 border-b-2 px-4 transition-colors" [class.border-transparent]="showHistory">Assets</button>
+        <button (click)="showHistory = true" [class.border-seb-green]="showHistory"
+            class="pb-2 border-b-2 px-4 transition-colors" [class.border-transparent]="!showHistory">Transaction
+            History</button>
+    </div>
+
+    <!-- Asset Table -->
+    <div *ngIf="!showHistory" class="bg-white rounded shadow overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 text-gray-600 border-b">
+                <tr>
+                    <th class="p-4">ID</th>
+                    <th class="p-4">Name</th>
+                    <th class="p-4">Serial</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let asset of assets" class="border-b hover:bg-gray-50">
+                    <td class="p-4 text-gray-500">#{{asset.id}}</td>
+                    <td class="p-4 font-medium">{{asset.name}}</td>
+                    <td class="p-4 font-mono text-sm text-gray-500">{{asset.serialNumber}}</td>
+                    <td class="p-4">
+                        <span [ngClass]="{
+              'bg-green-100 text-green-800': asset.status === 'InStock',
+              'bg-blue-100 text-blue-800': asset.status === 'InUse',
+              'bg-red-100 text-red-800': asset.status === 'Retired'
+            }" class="px-2 py-1 rounded text-xs font-semibold uppercase tracking-wide">
+                            {{asset.status}}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <button *ngIf="asset.status === 'InStock'" (click)="checkOut(asset.id)"
+                            class="text-blue-600 hover:underline text-sm font-medium mr-4">Check Out</button>
+                        <button *ngIf="asset.status === 'InUse'" (click)="checkIn(asset.id)"
+                            class="text-green-600 hover:underline text-sm font-medium">Return</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div *ngIf="assets.length === 0" class="p-8 text-center text-gray-500">No assets found.</div>
+    </div>
+
+    <!-- History Table -->
+    <div *ngIf="showHistory" class="bg-white rounded shadow overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 text-gray-600 border-b">
+                <tr>
+                    <th class="p-4">Date</th>
+                    <th class="p-4">Asset</th>
+                    <th class="p-4">User</th>
+                    <th class="p-4">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let t of history" class="border-b hover:bg-gray-50">
+                    <td class="p-4 text-gray-500">{{t.date | date:'short'}}</td>
+                    <td class="p-4 font-medium">{{t.asset?.name}}</td>
+                    <td class="p-4">{{t.userName}}</td>
+                    <td class="p-4">
+                        <span
+                            [ngClass]="{'text-green-600': t.type === 'CheckIn', 'text-blue-600': t.type === 'CheckOut'}"
+                            class="font-medium">
+                            {{t.type === 'CheckIn' ? 'Returned' : 'Designated'}}
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
