@@ -54,11 +54,100 @@ This project demonstrates a premium enterprise application architecture with Ass
 
 - **Src/Backend**: Contains the C# WebAPI project.
   - `Controllers`: REST API endpoints.
+  - `Services`: Business logic layer with validation and audit logging.
   - `Data`: EF Core DbContext.
   - `Models`: Domain entities.
 - **Src/Frontend**: Contains the Angular project.
   - `src/app/pages`: UI features (Login, Assets, Audit).
   - `src/app/services`: API integration.
+
+---
+
+## Testing
+
+This project includes comprehensive unit tests to ensure code quality and reliability.
+
+### Running Tests
+
+```bash
+cd src/ITAssetManager.Tests
+dotnet test --logger "console;verbosity=detailed"
+```
+
+### Test Coverage Matrix
+
+| Test Scenario | Description | Coverage |
+|---------------|-------------|----------|
+| **Validation Tests** | Empty name validation | ✅ AssetService |
+| **Validation Tests** | Duplicate serial number check | ✅ AssetService |
+| **Business Logic** | Check-out availability validation | ✅ TransactionService |
+| **State Management** | Status update on check-out | ✅ TransactionService |
+| **Business Logic** | Check-in validation (prevent invalid returns) | ✅ TransactionService |
+| **Audit Logging** | Audit log creation on operations | ✅ AssetService |
+| **Data Integrity** | Transaction record creation | ✅ TransactionService |
+| **Authorization** | Permission-based delete validation | ✅ AssetService |
+
+### Key Test Features
+
+- **xUnit**: Modern testing framework for .NET
+- **Moq**: Mock dependencies for isolated testing
+- **FluentAssertions**: Readable assertion syntax
+- **InMemory Database**: Fast, isolated database testing
+
+**Expected Output**:
+
+```plaintext
+Passed!  - Failed:     0, Passed:     8, Skipped:     0, Total:     8
+```
+
+---
+
+## AWS Deployment
+
+Deploy this application to AWS EC2 for cloud hosting.
+
+### Quick Start
+
+1. **Create EC2 Instance** (Ubuntu 22.04, t3.small recommended)
+2. **Configure Security Groups** (ports 22, 8080, 4200)
+3. **Upload project files** via SCP or Git
+4. **Run deployment script**:
+
+   ```bash
+   ./deployment/deploy-ec2.sh
+   ```
+
+**Full Guide**: See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed step-by-step instructions.
+
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────┐
+│           AWS EC2 Instance                  │
+│  ┌─────────────────────────────────────┐   │
+│  │     Docker Compose Environment      │   │
+│  │  ┌──────────────┐  ┌─────────────┐ │   │
+│  │  │   Backend    │  │  SQL Server │ │   │
+│  │  │  (.NET 8)    │  │   (2022)    │ │   │
+│  │  │  Port: 8080  │  │Port: 1433   │ │   │
+│  │  └──────────────┘  └─────────────┘ │   │
+│  └─────────────────────────────────────┘   │
+└─────────────────────────────────────────────┘
+         ↑                    ↑
+    Port 8080            Port 4200
+    (API/Swagger)        (Frontend - separate)
+```
+
+### Production Checklist
+
+- [ ] Changed default SQL Server password
+- [ ] Configured HTTPS/SSL certificates
+- [ ] Set up automated backups
+- [ ] Enabled CloudWatch monitoring
+- [ ] Configured proper security groups
+- [ ] Implemented authentication/authorization
+
+---
 
 ## License
 
