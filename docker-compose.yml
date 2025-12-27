@@ -21,6 +21,7 @@ services:
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=ITAssetManager;User Id=sa;Password=Password123!;TrustServerCertificate=True;
     depends_on:
       - sqlserver
+    restart: unless-stopped
 
 volumes:
   sqlvolume:
