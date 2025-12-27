@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ITAssetManager.Backend.Data;
+using ITAssetManager.Backend.Services;
 using ITAssetManager.Backend.Models;
 
 namespace ITAssetManager.Backend.Controllers;
@@ -9,62 +8,53 @@ namespace ITAssetManager.Backend.Controllers;
 [Route("api/[controller]")]
 public class TransactionsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly ITransactionService _transactionService;
 
-    public TransactionsController(AppDbContext context)
+    public TransactionsController(ITransactionService transactionService)
     {
-        _context = context;
+        _transactionService = transactionService;
     }
 
     [HttpPost("check-out")]
     public async Task<IActionResult> CheckOut(int assetId, string userName)
     {
-        var asset = await _context.Assets.FindAsync(assetId);
-        if (asset == null) return NotFound("Asset not found");
-        if (asset.Status != AssetStatus.InStock) return BadRequest("Asset not in stock");
-
-        // Update Asset
-        asset.Status = AssetStatus.InUse;
-        
-        // Record Transaction
-        var transaction = new AssetTransaction
+        try
         {
-            AssetId = assetId,
-            UserName = userName,
-            Type = TransactionType.CheckOut
-        };
-        _context.Transactions.Add(transaction);
-
-        await _context.SaveChangesAsync();
-        return Ok(transaction);
+            var transaction = await _transactionService.CheckOutAssetAsync(assetId, userName);
+            return Ok(transaction);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpPost("check-in")]
     public async Task<IActionResult> CheckIn(int assetId)
     {
-        var asset = await _context.Assets.FindAsync(assetId);
-        if (asset == null) return NotFound("Asset not found");
-        if (asset.Status != AssetStatus.InUse) return BadRequest("Asset not in use");
-
-        // Update Asset
-        asset.Status = AssetStatus.InStock;
-
-        // Record Transaction
-        var transaction = new AssetTransaction
+        try
         {
-            AssetId = assetId,
-            UserName = "System", // Or last user
-            Type = TransactionType.CheckIn
-        };
-        _context.Transactions.Add(transaction);
-
-        await _context.SaveChangesAsync();
-        return Ok(transaction);
+            var transaction = await _transactionService.CheckInAssetAsync(assetId, "System");
+            return Ok(transaction);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<AssetTransaction>>> GetHistory()
     {
-        return await _context.Transactions.Include(t => t.Asset).OrderByDescending(t => t.Date).ToListAsync();
+        var history = await _transactionService.GetTransactionHistoryAsync();
+        return Ok(history);
     }
 }

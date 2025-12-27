@@ -1,4 +1,5 @@
 using ITAssetManager.Backend.Data;
+using ITAssetManager.Backend.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -20,6 +21,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+// Register Services
+builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IAssetService, AssetService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+
 
 // CORS
 builder.Services.AddCors(options =>

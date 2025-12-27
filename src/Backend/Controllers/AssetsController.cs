@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ITAssetManager.Backend.Data;
+using ITAssetManager.Backend.Services;
 using ITAssetManager.Backend.Models;
 
 namespace ITAssetManager.Backend.Controllers;
@@ -9,23 +8,24 @@ namespace ITAssetManager.Backend.Controllers;
 [Route("api/[controller]")]
 public class AssetsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IAssetService _assetService;
 
-    public AssetsController(AppDbContext context)
+    public AssetsController(IAssetService assetService)
     {
-        _context = context;
+        _assetService = assetService;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Asset>>> GetAssets()
     {
-        return await _context.Assets.ToListAsync();
+        var assets = await _assetService.GetAllAssetsAsync();
+        return Ok(assets);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Asset>> GetAsset(int id)
     {
-        var asset = await _context.Assets.FindAsync(id);
+        var asset = await _assetService.GetAssetByIdAsync(id);
         if (asset == null) return NotFound();
         return asset;
     }
@@ -33,21 +33,19 @@ public class AssetsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Asset>> CreateAsset(Asset asset)
     {
-        asset.CreatedAt = DateTime.UtcNow;
-        _context.Assets.Add(asset);
-        await _context.SaveChangesAsync();
-        
-        // Audit (Simplified - normally via service)
-        _context.AuditLogs.Add(new AuditLog 
-        { 
-            EntityName = "Asset", 
-            Action = "Create", 
-            Changes = $"Created {asset.Name}", 
-            UserName = "Admin" // Mock
-        });
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetAsset), new { id = asset.Id }, asset);
+        try
+        {
+            var createdAsset = await _assetService.CreateAssetAsync(asset, "Admin"); // Mock user
+            return CreatedAtAction(nameof(GetAsset), new { id = createdAsset.Id }, createdAsset);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { error = ex.Message });
+        }
     }
 
     [HttpPut("{id}")]
@@ -55,21 +53,32 @@ public class AssetsController : ControllerBase
     {
         if (id != asset.Id) return BadRequest();
 
-        _context.Entry(asset).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-
-        return NoContent();
+        try
+        {
+            await _assetService.UpdateAssetAsync(asset, "Admin"); // Mock user
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAsset(int id)
     {
-        var asset = await _context.Assets.FindAsync(id);
-        if (asset == null) return NotFound();
-
-        _context.Assets.Remove(asset);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
+        try
+        {
+            await _assetService.DeleteAssetAsync(id, "Admin"); // Mock user
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid(ex.Message);
+        }
     }
 }
