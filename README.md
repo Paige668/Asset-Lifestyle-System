@@ -1,13 +1,12 @@
 # IT Asset Manager (Demo)
 
-A "SEB-style" Professional IT Asset Management System built with **ASP.NET Core 8** and **Angular 18**.
-This project demonstrates a premium enterprise application architecture with Asset management, Transaction tracking, and Audit logging.
+An enterprise-style IT Asset Management system built with ASP.NET Core 8 and Angular 18, featuring asset lifecycle management, transactional check-in/check-out workflows, and immutable audit logging. Includes unit tests and a Docker-based AWS EC2 deployment for demonstrating production-like delivery.
 
 ## Features
 
 - **Asset Management**: Full CRUD for IT Assets (Name, Serial Number, Status).
 - **Transaction System**: Check-out and Check-in workflows with history tracking.
-- **Audit Logging**: Immutable log of all system changes.
+- **Audit Logging**: Immutable, append-only log of all system changes.
 - **Role-Based Access**: Admin and User roles (simulated).
 - **Premium UI**: Responsive, modern interface using TailwindCSS.
 
@@ -35,8 +34,8 @@ This project demonstrates a premium enterprise application architecture with Ass
     ```
 
 3. Access the application:
-    - **Frontend**: [http://localhost:4200](http://localhost:4200) (or mapped port, usually 80/4200 depending on setup, check `docker ps`)
-    - **Backend Swagger**: [http://localhost:8080/swagger](http://localhost:8080/swagger)
+    - **Frontend**: [http://localhost:4200](http://localhost:4200)
+    - **Backend Swagger**: [http://localhost:8080/swagger]
 
 ### User Guide
 
@@ -65,7 +64,7 @@ This project demonstrates a premium enterprise application architecture with Ass
 
 ## Testing
 
-This project includes comprehensive unit tests to ensure code quality and reliability.
+This project includes unit tests focused on service-layer business logic using an isolated InMemory database setup.
 
 ### Running Tests
 
@@ -76,7 +75,7 @@ dotnet test --logger "console;verbosity=detailed"
 
 ### Test Coverage Matrix
 
-| Test Scenario | Description | Coverage |
+| Test Scenario | Description | Target |
 |---------------|-------------|----------|
 | **Validation Tests** | Empty name validation | ✅ AssetService |
 | **Validation Tests** | Duplicate serial number check | ✅ AssetService |
@@ -118,6 +117,18 @@ Deploy this application to AWS EC2 for cloud hosting.
    ```
 
 **Full Guide**: See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed step-by-step instructions.
+
+### Prerequisites on EC2
+
+1. Docker + Docker Compose installed
+2. Ports configured (or behind reverse proxy)
+
+   For development and evaluation, you may open ports 22, 8080, and 4200 for direct access. For production-like setups, expose only 80/443 and route traffic via a reverse proxy (e.g., Nginx).
+
+### Recommended networking
+
+1. Expose 80/443 via reverse proxy (Nginx)
+2. Keep API and DB internal to the instance/network when possible
 
 ### Architecture Diagram
 
