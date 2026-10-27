@@ -48,9 +48,16 @@ fi
 
 cd "$PROJECT_DIR"
 
-# Set environment variables for production
+# Create .env with a random SQL Server password on first run (docker-compose.yml reads it)
 echo "🔧 Configuring environment variables..."
-export ConnectionStrings__DefaultConnection="Server=sqlserver;Database=ITAssetDB;User=sa;Password=YourStrong@Password123;TrustServerCertificate=True;"
+if [ ! -f .env ]; then
+    SA_PASSWORD="$(openssl rand -base64 24 | tr -d '/+=')Aa1!"
+    echo "MSSQL_SA_PASSWORD=$SA_PASSWORD" > .env
+    chmod 600 .env
+    echo "✅ Generated .env with a random SQL Server password"
+else
+    echo "✅ Using existing .env"
+fi
 
 # Build and start containers
 echo "🏗️ Building and starting Docker containers..."

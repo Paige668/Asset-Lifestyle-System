@@ -4,9 +4,10 @@ services:
     container_name: itasset-sql
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=Password123!
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in .env (see .env.example)}
     ports:
-      - "1433:1433"
+      # Bound to localhost so the database is not reachable from outside the host
+      - "127.0.0.1:1433:1433"
     volumes:
       - sqlvolume:/var/opt/mssql
 
@@ -18,7 +19,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=ITAssetManager;User Id=sa;Password=Password123!;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=ITAssetManager;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
     depends_on:
       - sqlserver
     restart: unless-stopped

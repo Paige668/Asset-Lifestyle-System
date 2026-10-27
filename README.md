@@ -27,13 +27,19 @@ An enterprise-style IT Asset Management system built with ASP.NET Core 8 and Ang
 ### Quick Start (Docker)
 
 1. Clone the repository (or navigate to the folder).
-2. Start the application:
+2. Create `.env` from the example and set a strong SQL Server password:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+3. Start the application:
 
     ```bash
     docker-compose up -d --build
     ```
 
-3. Access the application:
+4. Access the application:
     - **Frontend**: [http://localhost:4200](http://localhost:4200)
     - **Backend Swagger**: [http://localhost:8080/swagger]
 

@@ -159,7 +159,7 @@ services:
 
   sqlserver:
     environment:
-      - SA_PASSWORD=${SQL_SA_PASSWORD}  # Use secrets management
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}  # Read from .env; use secrets management in production
     restart: unless-stopped
 ```
 
@@ -220,7 +220,7 @@ sudo docker-compose restart backend
 ### Issue: Database connection errors
 
 - SQL Server may need more time to initialize (wait 30-60 seconds)
-- Check password meets complexity requirements in `docker-compose.yml`
+- Check the password in `.env` meets SQL Server complexity requirements
 
 ---
 
@@ -230,8 +230,9 @@ Database data is stored in Docker volume. To backup:
 
 ```bash
 # Backup database
+# Load MSSQL_SA_PASSWORD from .env first: set -a; . ./.env; set +a
 sudo docker exec itassetmanager-sqlserver-1 /opt/mssql-tools/bin/sqlcmd \
-  -S localhost -U sa -P 'YourStrong@Password123' \
+  -S localhost -U sa -P "$MSSQL_SA_PASSWORD" \
   -Q "BACKUP DATABASE ITAssetDB TO DISK='/var/opt/mssql/backup/ITAssetDB.bak'"
 
 # Copy backup to host
