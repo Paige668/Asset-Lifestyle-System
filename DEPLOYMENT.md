@@ -1,6 +1,6 @@
 # AWS EC2 Deployment Guide
 
-This guide walks you through deploying the IT Asset Manager application on AWS EC2 using Docker.
+This guide walks you through running the IT Asset Manager API and its SQL Server database on AWS EC2 with Docker Compose. The Angular frontend is not part of this deployment; run it locally as described in the README.
 
 ## Prerequisites
 
@@ -38,9 +38,8 @@ This guide walks you through deploying the IT Asset Manager application on AWS E
    | Type        | Protocol | Port Range | Source    | Description     |
    |-------------|----------|------------|-----------|-----------------|
    | SSH         | TCP      | 22         | Your IP   | SSH access      |
-   | HTTP        | TCP      | 80         | 0.0.0.0/0 | Frontend        |
-   | Custom TCP  | TCP      | 4200       | 0.0.0.0/0 | Angular frontend |
-   | Custom TCP  | TCP      | 8080       | 0.0.0.0/0 | API & Swagger   |
+   | HTTP        | TCP      | 80         | 0.0.0.0/0 | Reverse proxy (optional, not set up by the script) |
+   | Custom TCP  | TCP      | 8080       | 0.0.0.0/0 | API             |
 
    > [!WARNING]
    > For production, restrict `0.0.0.0/0` to specific IP ranges and enable HTTPS with SSL certificates.
@@ -108,10 +107,9 @@ The script will:
 
 ```
 ✅ Deployment Complete!
-🌐 Access your application:
-  - Frontend: http://<PUBLIC-IP>:4200
-  - Backend API: http://<PUBLIC-IP>:8080
-  - Swagger UI: http://<PUBLIC-IP>:8080/swagger
+🌐 Access the API:
+  - Backend API: http://<PUBLIC-IP>:8080/api/assets
+  - The Angular frontend is not part of this stack; run it locally (see README).
 ```
 
 ---
@@ -133,13 +131,19 @@ The script will:
    ```
 
 3. **Test API**:
-   - Open browser: `http://<EC2-PUBLIC-IP>:8080/swagger`
-   - Execute `GET /api/Assets` - should return empty array `[]`
-   - Execute `POST /api/Assets` to create test asset
+   - `curl http://<EC2-PUBLIC-IP>:8080/api/assets` should return an empty array `[]`
+   - Create a test asset:
 
-4. **Test Frontend**:
-   - Open browser: `http://<EC2-PUBLIC-IP>:4200`
-   - Should see the Angular application
+     ```bash
+     curl -X POST http://<EC2-PUBLIC-IP>:8080/api/assets \
+       -H "Content-Type: application/json" \
+       -d '{"name": "Laptop", "serialNumber": "SN-001"}'
+     ```
+
+   - Swagger UI is enabled only in the Development environment, so this deployment does not serve it.
+
+4. **Frontend**:
+   - The Angular frontend is not deployed by this script. Run it locally as described in the README; it calls the API at `http://localhost:8080`.
 
 ---
 
@@ -169,7 +173,7 @@ Use AWS Certificate Manager + Application Load Balancer:
 
 1. Create SSL certificate in ACM
 2. Set up Application Load Balancer
-3. Configure target groups for ports 8080 and 4200
+3. Configure a target group for port 8080
 4. Update security groups to allow ALB traffic only
 
 ---
@@ -215,7 +219,7 @@ sudo docker-compose restart backend
 
 - Verify security group rules allow inbound traffic on port 8080
 - Check if backend container is running: `sudo docker-compose ps`
-- Test from EC2 instance: `curl http://localhost:8080/swagger`
+- Test from the EC2 instance: `curl http://localhost:8080/api/assets`
 
 ### Issue: Database connection errors
 
@@ -231,12 +235,13 @@ Database data is stored in Docker volume. To backup:
 ```bash
 # Backup database
 # Load MSSQL_SA_PASSWORD from .env first: set -a; . ./.env; set +a
-sudo docker exec itassetmanager-sqlserver-1 /opt/mssql-tools/bin/sqlcmd \
+# (newer SQL Server 2022 images ship sqlcmd as /opt/mssql-tools18/bin/sqlcmd and need -C)
+sudo docker exec itasset-sql /opt/mssql-tools/bin/sqlcmd \
   -S localhost -U sa -P "$MSSQL_SA_PASSWORD" \
-  -Q "BACKUP DATABASE ITAssetDB TO DISK='/var/opt/mssql/backup/ITAssetDB.bak'"
+  -Q "BACKUP DATABASE ITAssetManager TO DISK='/var/opt/mssql/backup/ITAssetManager.bak'"
 
 # Copy backup to host
-sudo docker cp itassetmanager-sqlserver-1:/var/opt/mssql/backup/ITAssetDB.bak ./backup/
+sudo docker cp itasset-sql:/var/opt/mssql/backup/ITAssetManager.bak ./backup/
 ```
 
 ---
@@ -261,15 +266,15 @@ sudo docker cp itassetmanager-sqlserver-1:/var/opt/mssql/backup/ITAssetDB.bak ./
 
 ---
 
-## Security Checklist
+## Security Checklist (before exposing the instance)
 
-- ✅ Changed default SQL Server password
-- ✅ Restricted SSH access to your IP only
-- ✅ Enabled AWS CloudWatch logging
-- ✅ Configured firewall rules properly
-- ⚠️ TODO: Enable HTTPS
-- ⚠️ TODO: Implement authentication/authorization
-- ⚠️ TODO: Set up VPC with private subnets for database
+- [ ] Set a strong SQL Server password in `.env` (docker-compose refuses to start without one)
+- [ ] Restrict SSH access to your IP only
+- [ ] Enable AWS CloudWatch logging
+- [ ] Review the security group and firewall rules
+- [ ] Enable HTTPS
+- [ ] Implement authentication/authorization
+- [ ] Move the database to a private subnet in a VPC
 
 ---
 
