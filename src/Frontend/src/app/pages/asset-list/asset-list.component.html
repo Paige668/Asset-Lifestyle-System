@@ -1,9 +1,9 @@
 <div class="p-6 max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-seb-dark">Asset Dashboard</h1>
+        <h1 class="text-3xl font-bold text-brand-dark">Asset Dashboard</h1>
         <div class="flex items-center gap-4">
-            <a routerLink="/assets" class="text-seb-green font-bold hover:underline">Assets</a>
-            <a routerLink="/audit" class="text-gray-600 hover:text-seb-dark hover:underline">Audit Logs</a>
+            <a routerLink="/assets" class="text-brand-green font-bold hover:underline">Assets</a>
+            <a routerLink="/audit" class="text-gray-600 hover:text-brand-dark hover:underline">Audit Logs</a>
             <span class="text-sm text-gray-500 border-l pl-4 ml-4">Logged in as: <b>{{ (auth.user$ | async)
                     }}</b></span>
             <button (click)="auth.logout()" class="text-sm text-red-500 hover:underline">Logout</button>
@@ -11,22 +11,22 @@
     </div>
 
     <!-- Admin: Create Asset -->
-    <div *ngIf="auth.getRole() === 'Admin'" class="bg-white p-4 rounded shadow mb-8 border-l-4 border-seb-green">
+    <div *ngIf="auth.getRole() === 'Admin'" class="bg-white p-4 rounded shadow mb-8 border-l-4 border-brand-green">
         <h2 class="font-semibold mb-4">Register New Asset</h2>
         <div class="flex gap-4">
             <input [(ngModel)]="newAsset.name" placeholder="Asset Name (e.g. MacBook Pro)"
                 class="border p-2 rounded flex-1">
             <input [(ngModel)]="newAsset.serialNumber" placeholder="Serial Number" class="border p-2 rounded flex-1">
-            <button (click)="createAsset()" class="bg-seb-dark text-white px-6 py-2 rounded hover:bg-gray-800">Add
+            <button (click)="createAsset()" class="bg-brand-dark text-white px-6 py-2 rounded hover:bg-gray-800">Add
                 Asset</button>
         </div>
     </div>
 
     <!-- Tabs -->
     <div class="flex gap-4 mb-4 border-b">
-        <button (click)="showHistory = false" [class.border-seb-green]="!showHistory"
+        <button (click)="showHistory = false" [class.border-brand-green]="!showHistory"
             class="pb-2 border-b-2 px-4 transition-colors" [class.border-transparent]="showHistory">Assets</button>
-        <button (click)="showHistory = true" [class.border-seb-green]="showHistory"
+        <button (click)="showHistory = true" [class.border-brand-green]="showHistory"
             class="pb-2 border-b-2 px-4 transition-colors" [class.border-transparent]="!showHistory">Transaction
             History</button>
     </div>

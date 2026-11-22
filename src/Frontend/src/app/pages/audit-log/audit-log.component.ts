@@ -17,7 +17,7 @@ interface AuditLog {
     imports: [CommonModule],
     template: `
     <div class="p-6 max-w-7xl mx-auto">
-      <h1 class="text-3xl font-bold text-seb-dark mb-6">System Audit Logs</h1>
+      <h1 class="text-3xl font-bold text-brand-dark mb-6">System Audit Logs</h1>
       <div class="bg-white rounded shadow overflow-hidden">
         <table class="w-full text-left">
           <thead class="bg-gray-50 text-gray-600 border-b">
